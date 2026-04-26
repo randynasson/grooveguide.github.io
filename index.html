@@ -77,6 +77,7 @@
   .artist-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
   .artist-header h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
   .artist-header span { font-size: 12px; color: var(--text3); }
+  .artist-disambig { font-size: 12px; color: var(--text3); font-style: italic; }
 
   /* Albums grid */
   .albums-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
@@ -209,14 +210,35 @@ async function mbFetch(url) {
 async function searchArtists(query) {
   const url = `${MB}/artist?query=${encodeURIComponent(query)}&limit=5&fmt=json`;
   const data = await mbFetch(url);
-  return (data.artists || []).slice(0, 3);
+  return (data.artists || []).slice(0, 1);
 }
 
+// MusicBrainz secondary types to always exclude for studio albums
+const EXCLUDE_SECONDARY = ['Live', 'Compilation', 'Soundtrack', 'Remix', 'DJ-mix', 'Mixtape/Street', 'Demo', 'Interview', 'Audiobook', 'Audio drama', 'Field recording'];
+
 async function getReleaseGroups(artistId) {
-  const types = [...activeFilters].join('|');
-  const url = `${MB}/release-group?artist=${artistId}&type=${encodeURIComponent(types)}&limit=100&fmt=json`;
+  // Always pass primary-type=Album; secondary type filters are added per active filter
+  const typeMap = { album: 'Album', ep: 'EP', live: 'Live', compilation: 'Compilation' };
+  const primaryTypes = [...activeFilters].map(f => typeMap[f]).filter(Boolean).join('|');
+  const url = `${MB}/release-group?artist=${artistId}&type=${encodeURIComponent(primaryTypes)}&limit=100&fmt=json`;
   const data = await mbFetch(url);
-  const groups = (data['release-groups'] || []);
+  let groups = (data['release-groups'] || []);
+
+  // Client-side filter: enforce that secondary types match what user wants
+  groups = groups.filter(rg => {
+    const primary = (rg['primary-type'] || '').toLowerCase();
+    const secondary = (rg['secondary-types'] || []);
+
+    // If user only has 'album' selected (studio albums), exclude anything with secondary types
+    // that indicate it's not a pure studio album
+    if (activeFilters.has('album') && !activeFilters.has('live') && !activeFilters.has('compilation')) {
+      if (primary === 'album' && secondary.length > 0) return false;
+    }
+    // Filter by what primary types user has selected
+    const wantedPrimaries = [...activeFilters].map(f => typeMap[f]).filter(Boolean).map(t => t.toLowerCase());
+    return wantedPrimaries.includes(primary);
+  });
+
   return groups.sort((a, b) => {
     const ya = parseInt(a['first-release-date']) || 9999;
     const yb = parseInt(b['first-release-date']) || 9999;
@@ -297,7 +319,8 @@ async function doSearch() {
       <div class="artist-block" id="artist-${a.id}">
         <div class="artist-header">
           <h2>${escHtml(a.name)}</h2>
-          <span id="count-${a.id}">loading albums…</span>
+          ${a.disambiguation ? `<span class="artist-disambig">${escHtml(a.disambiguation)}</span>` : ''}
+          <span id="count-${a.id}" style="margin-left:auto; flex-shrink:0">loading…</span>
         </div>
         <div class="albums-grid" id="grid-${a.id}">
           <div class="state-msg" style="grid-column:1/-1; padding:1rem 0; text-align:left;">
