@@ -4,169 +4,610 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Groove Guide — Vinyl Pressing Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #f9f8f6;
-    --surface: #ffffff;
-    --surface2: #f2f0ec;
-    --border: rgba(0,0,0,0.10);
-    --border-strong: rgba(0,0,0,0.18);
-    --text: #1a1a18;
-    --text2: #6b6a66;
-    --text3: #9e9c97;
-    --green-bg: #eaf3de; --green-text: #3b6d11;
-    --amber-bg: #faeeda; --amber-text: #854f0b;
-    --coral-bg: #faece7; --coral-text: #993c1d;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --cream:       #F5F0E8;
+    --cream-dark:  #EDE6D6;
+    --cream-deep:  #E2D9C5;
+    --ink:         #1C1A14;
+    --ink-mid:     #4A4637;
+    --ink-light:   #8C8471;
+    --ink-faint:   #B8AF9E;
+    --terracotta:  #A85C3A;
+    --terra-light: #C4795A;
+    --terra-bg:    #F2E6DF;
+    --sage:        #5A7A5C;
+    --sage-bg:     #E6EFE6;
+    --amber:       #9A6B1A;
+    --amber-bg:    #F5EDD8;
+    --border:      rgba(28,26,20,0.12);
+    --border-strong: rgba(28,26,20,0.22);
+    --radius:      4px;
+    --radius-lg:   8px;
+    --shadow-card: 0 1px 3px rgba(28,26,20,0.08), 0 4px 16px rgba(28,26,20,0.06);
+    --shadow-detail: 0 2px 8px rgba(28,26,20,0.10), 0 8px 32px rgba(28,26,20,0.08);
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body:    'DM Sans', 'Helvetica Neue', Arial, sans-serif;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1a1a18;
-      --surface: #242422;
-      --surface2: #2e2e2b;
-      --border: rgba(255,255,255,0.10);
-      --border-strong: rgba(255,255,255,0.18);
-      --text: #f0ede8;
-      --text2: #a09d97;
-      --text3: #6b6a66;
-      --green-bg: #173404; --green-text: #c0dd97;
-      --amber-bg: #412402; --amber-text: #fac775;
-      --coral-bg: #4a1b0c; --coral-text: #f0997b;
-    }
+  html { background: var(--cream); }
+  body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--cream);
+    min-height: 100vh;
   }
 
-  html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 15px; line-height: 1.5; }
+  /* Subtle grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
 
-  .container { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
 
-  /* Header */
-  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
-  .logo-disc { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--text); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
-  .logo-disc::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--text); }
-  .logo-disc::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--text); }
-  .logo-words h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: var(--text); }
-  .logo-words p { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  /* ── Header ── */
+  .header { margin-bottom: 3rem; }
 
-  /* Search */
-  .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
-  .search-box input { flex: 1; height: 42px; padding: 0 14px; font-size: 15px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; transition: border-color 0.15s; }
-  .search-box input:focus { border-color: var(--text3); }
-  .search-box input::placeholder { color: var(--text3); }
-  .search-box button { height: 42px; padding: 0 20px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--text); color: var(--bg); cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
-  .search-box button:hover { opacity: 0.85; }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+
+  .logo-disc {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .logo-disc::before {
+    content: '';
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+  }
+  .logo-disc::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+
+  .logo-words h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .logo-words p {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--ink-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .intro {
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+    padding-left: 64px;
+  }
+  .intro-lead {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 14px;
+    letter-spacing: 0.01em;
+  }
+  .intro p {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink-mid);
+    line-height: 1.8;
+  }
+  .intro p + p { margin-top: 8px; }
+  .intro em {
+    font-family: var(--font-display);
+    font-style: italic;
+    color: var(--ink);
+  }
+  .intro-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--cream-deep);
+    border-left: 2px solid var(--ink-faint);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--ink-light);
+    line-height: 1.7;
+  }
+  .intro-note-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  /* ── Search ── */
+  .search-area { padding-left: 64px; }
+
+  .search-box {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    max-width: 480px;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--cream);
+    transition: box-shadow 0.2s;
+  }
+  .search-box:focus-within {
+    box-shadow: 0 0 0 3px rgba(28,26,20,0.1);
+  }
+  .search-box input {
+    flex: 1;
+    height: 46px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-family: var(--font-body);
+    font-weight: 300;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    outline: none;
+    min-width: 0;
+  }
+  .search-box input::placeholder { color: var(--ink-faint); }
+  .search-box button {
+    height: 46px;
+    padding: 0 22px;
+    font-size: 13px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border: none;
+    border-left: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--cream);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .search-box button:hover { background: var(--ink-mid); }
   .search-box button:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  /* Filters */
-  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2rem; }
-  .pill { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-strong); cursor: pointer; color: var(--text2); background: transparent; transition: all 0.15s; user-select: none; }
-  .pill:hover { border-color: var(--text3); color: var(--text); }
-  .pill.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-family: var(--font-body);
+    border-radius: 100px;
+    border: 1px solid var(--border-strong);
+    color: var(--ink-mid);
+    background: transparent;
+    cursor: default;
+  }
+  .pill.active {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
 
-  /* States */
-  .state-msg { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
-  .state-msg .icon { font-size: 32px; margin-bottom: 12px; }
-  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border-strong); border-top-color: var(--text); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  /* ── Divider ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 2.5rem 0 2rem;
+  }
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider-text {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* ── Artist block ── */
+  .artist-block { margin-bottom: 3rem; }
+  .artist-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+  .artist-name {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+  .artist-disambig {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ink-light);
+  }
+  .artist-count {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-left: auto;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Albums ── */
+  .albums-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .album-row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 0;
+    padding: 14px 16px;
+    background: var(--cream);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .album-row.loaded {
+    cursor: pointer;
+    border-color: transparent;
+  }
+  .album-row.loaded:hover {
+    background: var(--cream-dark);
+    border-color: var(--border);
+  }
+  .album-row.open {
+    background: var(--cream-dark);
+    border-color: var(--border-strong);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .album-year {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+  }
+  .album-info { padding: 0 12px; }
+  .album-title {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .album-meta {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--ink-light);
+    margin-top: 2px;
+  }
+  .album-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .badge-1lp { background: var(--sage-bg); color: var(--sage); }
+  .badge-2lp { background: var(--amber-bg); color: var(--amber); }
+  .badge-3lp, .badge-4lp { background: var(--terra-bg); color: var(--terracotta); }
+  .badge-unknown { background: var(--cream-deep); color: var(--ink-faint); }
+
+  .disc-dots {
+    display: flex;
+    gap: 3px;
+  }
+  .disc-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .disc-dot::after {
+    content: '';
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--ink-faint);
+    transition: transform 0.2s;
+  }
+  .album-row.open .chevron { transform: rotate(180deg); }
+
+  .loading-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  /* ── Detail panel ── */
+  .detail-panel {
+    background: var(--cream-dark);
+    border: 1px solid var(--border-strong);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-detail);
+    animation: slideDown 0.2s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .stat-box {
+    background: var(--cream);
+    padding: 12px 14px;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-unit {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--ink-light);
+    font-weight: 300;
+    margin-left: 3px;
+  }
+
+  .detail-rationale {
+    font-size: 13.5px;
+    font-weight: 300;
+    color: var(--ink-mid);
+    line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .detail-disclaimer {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ink-faint);
+    line-height: 1.7;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+
+  .tracks-toggle {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--terracotta);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: var(--font-body);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(168,92,58,0.4);
+  }
+  .tracks-toggle:hover { color: var(--terra-light); }
+
+  .tracklist {
+    display: none;
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .tracklist.visible { display: block; }
+
+  .track-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .track-row:last-child { border-bottom: none; }
+  .track-num { width: 22px; text-align: right; color: var(--ink-faint); font-size: 11px; flex-shrink: 0; }
+  .track-name { flex: 1; color: var(--ink); font-weight: 300; }
+  .track-dur { color: var(--ink-light); font-size: 12px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+  /* ── States ── */
+  .state-msg {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--ink-light);
+    font-size: 14px;
+    font-weight: 300;
+  }
+  .state-msg .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .state-msg p { color: var(--ink-mid); max-width: 360px; margin: 0 auto; line-height: 1.7; }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-strong);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Artist block */
-  .artist-block { margin-bottom: 2.5rem; }
-  .artist-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-  .artist-header h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
-  .artist-header span { font-size: 12px; color: var(--text3); }
-  .artist-disambig { font-size: 12px; color: var(--text3); font-style: italic; }
+  .error-msg {
+    background: var(--terra-bg);
+    color: var(--terracotta);
+    border: 1px solid rgba(168,92,58,0.2);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 1.5rem;
+  }
 
-  /* Albums grid */
-  .albums-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-  .album-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem 0.9rem; cursor: default; transition: border-color 0.15s; position: relative; }
-  .album-card.clickable { cursor: pointer; }
-  .album-card.clickable:hover { border-color: var(--border-strong); }
-  .card-hint { font-size: 11px; color: var(--text3); margin-top: 8px; }
-  .album-card:hover { border-color: var(--border-strong); }
-  .album-card.open { border-color: var(--border-strong); }
-  .album-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 2px; }
-  .album-meta { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
-  .badge-1lp { background: var(--green-bg); color: var(--green-text); }
-  .badge-2lp { background: var(--amber-bg); color: var(--amber-text); }
-  .badge-3lp, .badge-4lp { background: var(--coral-bg); color: var(--coral-text); }
-  .badge-unknown { background: var(--surface2); color: var(--text3); }
-  .disc-dots { display: flex; gap: 4px; margin-top: 7px; }
-  .disc-dot { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid currentColor; display: flex; align-items: center; justify-content: center; }
-  .disc-dot::after { content: ''; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
-  .loading-card { color: var(--text3); font-size: 12px; padding-top: 6px; }
+  /* ── Loading progress ── */
+  .load-progress {
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+  }
 
-  /* Detail panel */
-  .detail-wrap { grid-column: 1 / -1; }
-  .detail-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-top: 2px; }
-  .detail-panel h3 { font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
-  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
-  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
-  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 4px; }
-  .stat-value { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; }
-  .stat-unit { font-size: 11px; color: var(--text2); font-weight: 400; margin-left: 2px; }
-  .sides-section { margin-bottom: 12px; }
-  .sides-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
-  .side-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-  .side-name { font-size: 12px; color: var(--text2); width: 46px; flex-shrink: 0; }
-  .bar-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: visible; position: relative; }
-  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-  .bar-ok { background: #639922; }
-  .bar-warn { background: #ba7517; }
-  .bar-over { background: #d85a30; }
-  .bar-threshold { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--text3); opacity: 0.5; }
-  .side-mins { font-size: 12px; color: var(--text2); width: 48px; text-align: right; flex-shrink: 0; }
-  .threshold-note { font-size: 11px; color: var(--text3); text-align: right; margin-bottom: 10px; }
-  .rationale { font-size: 13px; color: var(--text2); line-height: 1.65; padding-top: 10px; border-top: 1px solid var(--border); margin-bottom: 10px; }
-  .disclaimer { font-size: 12px; color: var(--text3); line-height: 1.6; font-style: italic; padding-top: 8px; border-top: 1px solid var(--border); margin-bottom: 10px; }
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .container { padding: 2rem 1.25rem 4rem; }
+    .intro { padding-left: 0; }
+    .search-area { padding-left: 0; }
+    .intro-lead { font-size: 20px; }
+    .logo-words h1 { font-size: 22px; }
+    .logo-disc { width: 40px; height: 40px; }
+    .detail-stats { grid-template-columns: 1fr 1fr; }
+    .album-row { grid-template-columns: 40px 1fr auto; padding: 12px 10px; }
+    .detail-panel { padding: 1.25rem 1rem; }
+    .artist-name { font-size: 20px; }
+  }
 
-  /* Tracklist */
-  .tracks-toggle { font-size: 12px; color: var(--text3); cursor: pointer; margin-top: 8px; display: inline-block; text-decoration: underline; text-underline-offset: 2px; }
-  .tracklist { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; display: none; }
-  .tracklist.visible { display: block; }
-  .track-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--text2); border-bottom: 1px solid var(--border); }
-  .track-row:last-child { border-bottom: none; }
-  .track-num { width: 20px; text-align: right; color: var(--text3); flex-shrink: 0; }
-  .track-name { flex: 1; color: var(--text); }
-  .track-dur { color: var(--text3); flex-shrink: 0; }
-
-  /* Error */
-  .intro { margin-bottom: 1.75rem; }
-  .intro p { font-size: 14px; color: var(--text2); line-height: 1.7; max-width: 600px; }
-  .error-msg { background: var(--coral-bg); color: var(--coral-text); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; }
-
-  @media (max-width: 500px) {
-    .stats-row { grid-template-columns: 1fr 1fr; }
-    .albums-grid { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 400px) {
+    .album-right .disc-dots { display: none; }
+    .search-box button { padding: 0 14px; font-size: 12px; }
   }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <div class="logo">
-    <div class="logo-disc"></div>
-    <div class="logo-words">
-      <h1>Groove Guide</h1>
-      <p>Vinyl pressing advisor</p>
+  <header class="header">
+    <div class="logo">
+      <div class="logo-disc"></div>
+      <div class="logo-words">
+        <h1>Groove Guide</h1>
+        <p>Vinyl Pressing Advisor</p>
+      </div>
     </div>
-  </div>
 
-  <div class="intro">
-    <p>Not all vinyl pressings are equal. For the best audio quality, a 33&#8209;1/3 RPM album side shouldn't exceed about 22 minutes — beyond that, grooves get compressed and dynamic range suffers. Search for an artist to see their studio albums and find out how many discs a quality pressing should have. Note: Groove Guide currently only accounts for 33&#8209;1/3 RPM pressings and does not yet factor in 45 RPM album pressings.</p>
-  </div>
+    <div class="intro">
+      <div class="intro-lead">Not all pressings are created equal.</div>
+      <p>Search an artist to see their studio albums and find out how many discs a quality pressing should have.</p>
+      <p>For 33&#8209;1/3 RPM records, <em>each side should carry no more than about 22 minutes of music</em> — beyond that, grooves get cut shallower, and dynamic range begins to suffer.</p>
+      <div class="intro-note">
+        <span class="intro-note-label">Note</span>
+        <span>Groove Guide currently accounts for 33&#8209;1/3 RPM pressings only and does not yet factor in 45 RPM album pressings.</span>
+      </div>
+    </div>
 
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search an artist… (e.g. Bad Brains, U2, Radiohead)" autocomplete="off" />
-    <button id="searchBtn" onclick="doSearch()">Search</button>
-  </div>
-
-  <div class="filters">
-    <span class="pill active">Studio albums</span>
-  </div>
+    <div class="search-area">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Artist name — e.g. Bad Brains, Joni Mitchell…" autocomplete="off" />
+        <button id="searchBtn" onclick="doSearch()">Search</button>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Showing</span>
+        <span class="pill active">Studio albums</span>
+      </div>
+    </div>
+  </header>
 
   <div id="errorMsg" class="error-msg" style="display:none"></div>
   <div id="output"></div>
@@ -177,10 +618,9 @@
 const THRESHOLD = 22;
 const MB = 'https://musicbrainz.org/ws/2';
 const UA = 'GrooveGuide/1.0 (vinyl-pressing-advisor)';
-const DELAY = 1100; // MusicBrainz rate limit: 1 req/sec
+const DELAY = 1100;
 
 let lastResults = [];
-let openDetailId = null;
 
 document.getElementById('searchInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') doSearch();
@@ -207,21 +647,14 @@ async function searchArtists(query) {
 }
 
 async function getReleaseGroups(artistId) {
-  // Fetch all release groups — no type filter in the URL to avoid API 400 errors.
-  // We do all filtering client-side where we have full control.
   const url = `${MB}/release-group?artist=${artistId}&limit=100&fmt=json`;
   const data = await mbFetch(url);
   let groups = (data['release-groups'] || []);
-
-  // Strict client-side filter: primary type must be "Album" AND secondary-types must be empty.
-  // MusicBrainz uses secondary-types to tag Live, Compilation, Soundtrack, Remix, Demo, etc.
-  // A pure studio album has primary-type "Album" and no secondary types whatsoever.
   groups = groups.filter(rg => {
     const primary = (rg['primary-type'] || '');
     const secondary = (rg['secondary-types'] || []);
     return primary === 'Album' && secondary.length === 0;
   });
-
   return groups.sort((a, b) => {
     const ya = parseInt(a['first-release-date']) || 9999;
     const yb = parseInt(b['first-release-date']) || 9999;
@@ -233,19 +666,15 @@ async function getBestRelease(rgId) {
   await sleep(DELAY);
   const url = `${MB}/release?release-group=${rgId}&status=official&fmt=json&limit=10`;
   const data = await mbFetch(url);
-  const releases = (data.releases || []);
-  if (!releases.length) return null;
-  // Prefer releases with track data available; pick first official
-  return releases[0];
+  return (data.releases || [])[0] || null;
 }
 
 async function getReleaseTracks(releaseId) {
   await sleep(DELAY);
   const url = `${MB}/release/${releaseId}?inc=recordings&fmt=json`;
   const data = await mbFetch(url);
-  const media = data.media || [];
   const tracks = [];
-  for (const medium of media) {
+  for (const medium of (data.media || [])) {
     for (const track of (medium.tracks || [])) {
       tracks.push({
         num: track.number,
@@ -259,21 +688,20 @@ async function getReleaseTracks(releaseId) {
 
 function getRec(runtimeMs) {
   const mins = runtimeMs / 60000;
-  const minsPerSide1 = mins / 2;
-  if (minsPerSide1 <= THRESHOLD) return { lp: 1, mins };
+  if (mins / 2 <= THRESHOLD) return { lp: 1, mins };
   if (mins / 4 <= THRESHOLD) return { lp: 2, mins };
   if (mins / 6 <= THRESHOLD) return { lp: 3, mins };
   return { lp: 4, mins };
 }
 
 function fmtMs(ms) {
-  if (!ms) return '?:??';
+  if (!ms) return '—';
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 }
 
-function fmtMins(ms) {
-  return (ms / 60000).toFixed(1);
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 async function doSearch() {
@@ -281,37 +709,43 @@ async function doSearch() {
   if (!q) return;
   showError('');
   lastResults = [];
-  openDetailId = null;
 
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
   btn.textContent = 'Searching…';
 
   const out = document.getElementById('output');
-  out.innerHTML = `<div class="state-msg"><span class="spinner"></span> Finding artists…</div>`;
+  out.innerHTML = `<div class="state-msg"><span class="spinner"></span> Finding artist…</div>`;
 
   try {
     const artists = await searchArtists(q);
     if (!artists.length) {
-      out.innerHTML = `<div class="state-msg"><div class="icon">🔍</div>No artists found for "${q}"</div>`;
+      out.innerHTML = `<div class="state-msg"><div class="eyebrow">No results</div><p>No artists found for "${escHtml(q)}" — try a different spelling or name.</p></div>`;
       return;
     }
-
     lastResults = artists;
-    out.innerHTML = artists.map(a => `
-      <div class="artist-block" id="artist-${a.id}">
-        <div class="artist-header">
-          <h2>${escHtml(a.name)}</h2>
-          ${a.disambiguation ? `<span class="artist-disambig">${escHtml(a.disambiguation)}</span>` : ''}
-          <span id="count-${a.id}" style="margin-left:auto; flex-shrink:0">loading…</span>
-        </div>
-        <div class="albums-grid" id="grid-${a.id}">
-          <div class="state-msg" style="grid-column:1/-1; padding:1rem 0; text-align:left;">
-            <span class="spinner"></span> Fetching discography…
+
+    out.innerHTML = `
+      <div class="section-divider">
+        <div class="section-divider-line"></div>
+        <div class="section-divider-text">Results</div>
+        <div class="section-divider-line"></div>
+      </div>
+      ${artists.map(a => `
+        <div class="artist-block" id="artist-${a.id}">
+          <div class="artist-header">
+            <span class="artist-name">${escHtml(a.name)}</span>
+            ${a.disambiguation ? `<span class="artist-disambig">${escHtml(a.disambiguation)}</span>` : ''}
+            <span class="artist-count" id="count-${a.id}">loading…</span>
+          </div>
+          <div class="albums-list" id="list-${a.id}">
+            <div class="state-msg" style="padding:2rem 0; text-align:left;">
+              <span class="spinner"></span> Fetching discography…
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('')}
+    `;
 
     for (const artist of artists) {
       await loadArtist(artist);
@@ -328,123 +762,128 @@ async function doSearch() {
 }
 
 async function loadArtist(artist) {
-  const grid = document.getElementById(`grid-${artist.id}`);
+  const list = document.getElementById(`list-${artist.id}`);
   const countEl = document.getElementById(`count-${artist.id}`);
-  if (!grid) return;
+  if (!list) return;
 
   try {
     const groups = await getReleaseGroups(artist.id);
     if (!groups.length) {
-      grid.innerHTML = `<div style="font-size:13px; color:var(--text3); padding:0.5rem 0;">No releases found with current filters.</div>`;
-      countEl.textContent = '0 releases';
+      list.innerHTML = `<div style="font-size:13px; color:var(--ink-faint); padding:0.5rem 0;">No studio albums found.</div>`;
+      countEl.textContent = '0 albums';
       return;
     }
 
-    countEl.textContent = `${groups.length} release${groups.length !== 1 ? 's' : ''}`;
-    grid.innerHTML = '';
+    countEl.textContent = `${groups.length} album${groups.length !== 1 ? 's' : ''}`;
+    list.innerHTML = '';
 
+    // Render all shells first
     for (const rg of groups) {
-      const card = makeCardShell(rg);
-      grid.appendChild(card);
+      list.appendChild(makeRowShell(rg));
     }
 
-    // Load track data for each release group sequentially
+    // Load track data sequentially
+    let loaded = 0;
     for (const rg of groups) {
-      const card = document.getElementById(`card-${rg.id}`);
-      if (!card) continue;
       try {
         const release = await getBestRelease(rg.id);
-        if (!release) {
-          updateCardUnknown(rg.id);
-          continue;
-        }
+        if (!release) { updateRowUnknown(rg.id); loaded++; continue; }
         const tracks = await getReleaseTracks(release.id);
         const totalMs = tracks.reduce((sum, t) => sum + (t.duration || 0), 0);
         const hasDurations = tracks.some(t => t.duration);
         if (!hasDurations || totalMs === 0) {
-          updateCardUnknown(rg.id);
+          updateRowUnknown(rg.id);
         } else {
-          updateCard(rg, tracks, totalMs);
+          updateRow(rg, tracks, totalMs);
         }
       } catch (e) {
-        updateCardUnknown(rg.id);
+        updateRowUnknown(rg.id);
       }
+      loaded++;
+      if (countEl) countEl.textContent = `${groups.length} album${groups.length !== 1 ? 's' : ''} · loading ${loaded}/${groups.length}…`;
     }
+    countEl.textContent = `${groups.length} album${groups.length !== 1 ? 's' : ''}`;
+
   } catch (err) {
-    grid.innerHTML = `<div style="font-size:13px; color:var(--coral-text);">Failed to load discography.</div>`;
+    list.innerHTML = `<div style="font-size:13px; color:var(--terracotta);">Failed to load discography.</div>`;
   }
 }
 
-function makeCardShell(rg) {
+function makeRowShell(rg) {
   const year = (rg['first-release-date'] || '').slice(0, 4) || '—';
   const div = document.createElement('div');
-  div.className = 'album-card';
-  div.id = `card-${rg.id}`;
+  div.className = 'album-row';
+  div.id = `row-${rg.id}`;
   div.innerHTML = `
-    <div class="album-title">${escHtml(rg.title)}</div>
-    <div class="album-meta">${year}</div>
-    <div class="loading-card"><span class="spinner"></span></div>
+    <span class="album-year">${escHtml(year)}</span>
+    <div class="album-info">
+      <div class="album-title">${escHtml(rg.title)}</div>
+      <div class="album-meta loading-row"><span class="spinner"></span></div>
+    </div>
+    <div class="album-right"></div>
   `;
   return div;
 }
 
-function updateCardUnknown(rgId) {
-  const card = document.getElementById(`card-${rgId}`);
-  if (!card) return;
-  const title = card.querySelector('.album-title').textContent;
-  const meta = card.querySelector('.album-meta').textContent;
-  card.innerHTML = `
-    <div class="album-title">${escHtml(title)}</div>
-    <div class="album-meta">${meta}</div>
-    <span class="badge badge-unknown">No duration data</span>
-  `;
+function updateRowUnknown(rgId) {
+  const row = document.getElementById(`row-${rgId}`);
+  if (!row) return;
+  row.querySelector('.album-meta').innerHTML = 'Duration unavailable';
+  row.querySelector('.album-right').innerHTML = `<span class="badge badge-unknown">Unknown</span>`;
 }
 
-function updateCard(rg, tracks, totalMs) {
-  const card = document.getElementById(`card-${rg.id}`);
-  if (!card) return;
-  const year = (rg['first-release-date'] || '').slice(0, 4) || '—';
+function updateRow(rg, tracks, totalMs) {
+  const row = document.getElementById(`row-${rg.id}`);
+  if (!row) return;
   const rec = getRec(totalMs);
+  const totalMins = (totalMs / 60000).toFixed(1);
   const badgeCls = `badge-${rec.lp}lp`;
   const label = `${rec.lp}LP`;
+  const dotColor = rec.lp === 1 ? 'var(--sage)' : rec.lp === 2 ? 'var(--amber)' : 'var(--terracotta)';
   const discDots = Array.from({length: rec.lp}, () =>
-    `<div class="disc-dot" style="color:${rec.lp===1?'var(--green-text)':rec.lp===2?'var(--amber-text)':'var(--coral-text)'}"></div>`
+    `<div class="disc-dot" style="color:${dotColor}"></div>`
   ).join('');
 
-  card.innerHTML = `
-    <div class="album-title">${escHtml(rg.title)}</div>
-    <div class="album-meta">${year} &middot; ${tracks.length} tracks &middot; ${fmtMins(totalMs)} min</div>
-    <span class="badge ${badgeCls}">${label} recommended</span>
+  row.querySelector('.album-meta').textContent = `${tracks.length} tracks · ${totalMins} min`;
+  row.querySelector('.album-right').innerHTML = `
     <div class="disc-dots">${discDots}</div>
-    <div class="card-hint">Click for details</div>
+    <span class="badge ${badgeCls}">${label}</span>
+    <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M4 6l4 4 4-4"/>
+    </svg>
   `;
 
-  // Re-attach click listener after innerHTML rebuild (innerHTML wipes previous listeners)
-  card.classList.add('clickable');
-  card.onclick = () => toggleDetail(card, rg, tracks, totalMs, rec);
+  row.classList.add('loaded');
+  row.onclick = () => toggleDetail(row, rg, tracks, totalMs, rec);
 }
 
-function toggleDetail(card, rg, tracks, totalMs, rec) {
-  const grid = card.closest('.albums-grid');
+function toggleDetail(row, rg, tracks, totalMs, rec) {
+  const list = row.closest('.albums-list');
 
-  // Remove any existing detail panel in this artist section
-  const existing = grid.parentElement.querySelector('.detail-wrap');
-  const wasThisCard = existing && existing.dataset.rgId === rg.id;
-  if (existing) {
-    existing.remove();
-    grid.querySelectorAll('.album-card').forEach(c => c.classList.remove('open'));
-  }
-  if (wasThisCard) return;
+  // Close any open detail in this list
+  const existingDetail = list.querySelector('.detail-panel');
+  const existingRow = list.querySelector('.album-row.open');
+  const wasThisRow = existingRow && existingRow.id === row.id;
 
-  card.classList.add('open');
-  const wrap = document.createElement('div');
-  wrap.className = 'detail-wrap';
-  wrap.dataset.rgId = rg.id;
-  wrap.innerHTML = buildDetail(rg, tracks, totalMs, rec);
-  grid.insertAdjacentElement('afterend', wrap);
+  if (existingDetail) existingDetail.remove();
+  if (existingRow) existingRow.classList.remove('open');
 
-  wrap.querySelector('.tracks-toggle').addEventListener('click', function() {
-    const tl = wrap.querySelector('.tracklist');
+  if (wasThisRow) return;
+
+  // Open this row's detail
+  row.classList.add('open');
+  const detail = document.createElement('div');
+  detail.className = 'detail-panel';
+  detail.innerHTML = buildDetail(rg, tracks, totalMs, rec);
+  row.insertAdjacentElement('afterend', detail);
+
+  // Scroll so the row is visible
+  setTimeout(() => {
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
+
+  detail.querySelector('.tracks-toggle').addEventListener('click', function() {
+    const tl = detail.querySelector('.tracklist');
     const visible = tl.classList.toggle('visible');
     this.textContent = visible ? 'Hide tracklist' : 'Show tracklist';
   });
@@ -454,16 +893,16 @@ function buildDetail(rg, tracks, totalMs, rec) {
   const totalSides = rec.lp * 2;
   const totalMins = (totalMs / 60000).toFixed(1);
   const minsPerSide = (totalMs / 60000) / totalSides;
+  const singleSideMins = (totalMs / 60000) / 2;
 
   let reason;
   if (rec.lp === 1) {
-    reason = `A single LP (2 sides) is sufficient. Assuming even sequencing, each side would carry approximately ${minsPerSide.toFixed(1)} minutes of music — comfortably within the ${THRESHOLD}-minute threshold where groove depth and dynamic range are best preserved.`;
+    reason = `A single LP (2 sides) is sufficient. Assuming even sequencing, each side would carry approximately ${minsPerSide.toFixed(1)} minutes — comfortably within the ${THRESHOLD}-minute threshold where groove depth and dynamic range are best preserved.`;
   } else {
-    const singleSide = (totalMs / 60000) / 2;
-    reason = `A ${rec.lp}LP pressing (${totalSides} sides) is recommended. At ${totalMins} total minutes, a single LP would require approximately ${singleSide.toFixed(1)} minutes per side — over the ${THRESHOLD}-minute threshold where groove depth and dynamic range begin to suffer. Spread across ${totalSides} sides, each carries approximately ${minsPerSide.toFixed(1)} minutes, well within the optimal window.`;
+    reason = `A ${rec.lp}LP pressing (${totalSides} sides) is recommended. At ${totalMins} total minutes, a single LP would require approximately ${singleSideMins.toFixed(1)} minutes per side — over the ${THRESHOLD}-minute threshold where grooves must be cut shallower to fit, sacrificing dynamic range. Spread across ${totalSides} sides, each carries approximately ${minsPerSide.toFixed(1)} minutes, well within the optimal window.`;
   }
 
-  const disclaimer = `This recommendation is based on total album runtime from MusicBrainz (${totalMins} min). Actual side lengths depend on how the pressing is sequenced, which can vary between releases.`;
+  const disclaimer = `Recommendation based on total runtime from MusicBrainz (${totalMins} min). Actual side lengths vary by pressing and sequencing.`;
 
   const trackRows = tracks.map(t =>
     `<div class="track-row">
@@ -475,35 +914,30 @@ function buildDetail(rg, tracks, totalMs, rec) {
 
   const badgeCls = `badge-${rec.lp}lp`;
 
-  return `<div class="detail-panel">
-    <h3>${escHtml(rg.title)} — pressing analysis</h3>
-    <div class="stats-row">
+  return `
+    <div class="detail-stats">
       <div class="stat-box">
         <div class="stat-label">Runtime</div>
         <div class="stat-value">${totalMins}<span class="stat-unit">min</span></div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Avg per side</div>
+        <div class="stat-label">Avg / side</div>
         <div class="stat-value">${minsPerSide.toFixed(1)}<span class="stat-unit">min</span></div>
       </div>
       <div class="stat-box">
         <div class="stat-label">Recommended</div>
-        <div class="stat-value"><span class="badge ${badgeCls}" style="font-size:14px">${rec.lp}LP</span></div>
+        <div class="stat-value"><span class="badge ${badgeCls}" style="font-size:13px;height:auto;padding:3px 10px;">${rec.lp}LP</span></div>
       </div>
       <div class="stat-box">
         <div class="stat-label">Total sides</div>
         <div class="stat-value">${totalSides}</div>
       </div>
     </div>
-    <div class="rationale">${reason}</div>
-    <div class="disclaimer">${disclaimer}</div>
-    <span class="tracks-toggle">Show tracklist</span>
+    <p class="detail-rationale">${reason}</p>
+    <p class="detail-disclaimer">${disclaimer}</p>
+    <button class="tracks-toggle">Show tracklist</button>
     <div class="tracklist">${trackRows}</div>
-  </div>`;
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  `;
 }
 </script>
 </body>
