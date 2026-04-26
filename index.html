@@ -120,7 +120,8 @@
   .bar-threshold { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--text3); opacity: 0.5; }
   .side-mins { font-size: 12px; color: var(--text2); width: 48px; text-align: right; flex-shrink: 0; }
   .threshold-note { font-size: 11px; color: var(--text3); text-align: right; margin-bottom: 10px; }
-  .rationale { font-size: 13px; color: var(--text2); line-height: 1.65; padding-top: 10px; border-top: 1px solid var(--border); }
+  .rationale { font-size: 13px; color: var(--text2); line-height: 1.65; padding-top: 10px; border-top: 1px solid var(--border); margin-bottom: 10px; }
+  .disclaimer { font-size: 12px; color: var(--text3); line-height: 1.6; font-style: italic; padding-top: 8px; border-top: 1px solid var(--border); margin-bottom: 10px; }
 
   /* Tracklist */
   .tracks-toggle { font-size: 12px; color: var(--text3); cursor: pointer; margin-top: 8px; display: inline-block; text-decoration: underline; text-underline-offset: 2px; }
@@ -133,6 +134,8 @@
   .track-dur { color: var(--text3); flex-shrink: 0; }
 
   /* Error */
+  .intro { margin-bottom: 1.75rem; }
+  .intro p { font-size: 14px; color: var(--text2); line-height: 1.7; max-width: 600px; }
   .error-msg { background: var(--coral-bg); color: var(--coral-text); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; }
 
   @media (max-width: 500px) {
@@ -150,6 +153,10 @@
       <h1>Groove Guide</h1>
       <p>Vinyl pressing advisor</p>
     </div>
+  </div>
+
+  <div class="intro">
+    <p>Not all vinyl pressings are equal. For the best audio quality, a 33&#8209;1/3 RPM album side shouldn't exceed about 22 minutes — beyond that, grooves get compressed and dynamic range suffers. Search for an artist to see their studio albums and find out how many discs a quality pressing should have. Note: Groove Guide currently only accounts for 33&#8209;1/3 RPM pressings and does not yet factor in 45 RPM album pressings.</p>
   </div>
 
   <div class="search-box">
@@ -445,26 +452,18 @@ function toggleDetail(card, rg, tracks, totalMs, rec) {
 
 function buildDetail(rg, tracks, totalMs, rec) {
   const totalSides = rec.lp * 2;
+  const totalMins = (totalMs / 60000).toFixed(1);
   const minsPerSide = (totalMs / 60000) / totalSides;
-  const maxBar = THRESHOLD + 5;
-  const thresholdPct = (THRESHOLD / maxBar * 100).toFixed(1);
 
-  const sideRows = Array.from({length: totalSides}, (_, i) => {
-    const pct = Math.min((minsPerSide / maxBar) * 100, 100).toFixed(1);
-    const cls = minsPerSide <= 18 ? 'bar-ok' : minsPerSide <= THRESHOLD ? 'bar-warn' : 'bar-over';
-    return `<div class="side-row">
-      <span class="side-name">Side ${String.fromCharCode(65+i)}</span>
-      <div class="bar-track">
-        <div class="bar-fill ${cls}" style="width:${pct}%"></div>
-        <div class="bar-threshold" style="left:${thresholdPct}%"></div>
-      </div>
-      <span class="side-mins">~${minsPerSide.toFixed(1)} min</span>
-    </div>`;
-  }).join('');
+  let reason;
+  if (rec.lp === 1) {
+    reason = `A single LP (2 sides) is sufficient. Assuming even sequencing, each side would carry approximately ${minsPerSide.toFixed(1)} minutes of music — comfortably within the ${THRESHOLD}-minute threshold where groove depth and dynamic range are best preserved.`;
+  } else {
+    const singleSide = (totalMs / 60000) / 2;
+    reason = `A ${rec.lp}LP pressing (${totalSides} sides) is recommended. At ${totalMins} total minutes, a single LP would require approximately ${singleSide.toFixed(1)} minutes per side — over the ${THRESHOLD}-minute threshold where groove depth and dynamic range begin to suffer. Spread across ${totalSides} sides, each carries approximately ${minsPerSide.toFixed(1)} minutes, well within the optimal window.`;
+  }
 
-  const reason = rec.lp === 1
-    ? `At ~${minsPerSide.toFixed(1)} min/side, this fits comfortably on a single LP. Each groove can be cut deep, preserving full dynamic range.`
-    : `At ${(totalMs/60000).toFixed(1)} total minutes, a single LP would push each side past the ${THRESHOLD}-minute quality threshold. A ${rec.lp}LP pressing keeps each side at ~${minsPerSide.toFixed(1)} min — well within the optimal window for groove depth and dynamics.`;
+  const disclaimer = `This recommendation is based on total album runtime from MusicBrainz (${totalMins} min). Actual side lengths depend on how the pressing is sequenced, which can vary between releases.`;
 
   const trackRows = tracks.map(t =>
     `<div class="track-row">
@@ -481,10 +480,10 @@ function buildDetail(rg, tracks, totalMs, rec) {
     <div class="stats-row">
       <div class="stat-box">
         <div class="stat-label">Runtime</div>
-        <div class="stat-value">${(totalMs/60000).toFixed(1)}<span class="stat-unit">min</span></div>
+        <div class="stat-value">${totalMins}<span class="stat-unit">min</span></div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Per side</div>
+        <div class="stat-label">Avg per side</div>
         <div class="stat-value">${minsPerSide.toFixed(1)}<span class="stat-unit">min</span></div>
       </div>
       <div class="stat-box">
@@ -496,12 +495,8 @@ function buildDetail(rg, tracks, totalMs, rec) {
         <div class="stat-value">${totalSides}</div>
       </div>
     </div>
-    <div class="sides-section">
-      <div class="sides-label">Minutes per side</div>
-      ${sideRows}
-      <div class="threshold-note">▲ ${THRESHOLD} min/side threshold</div>
-    </div>
     <div class="rationale">${reason}</div>
+    <div class="disclaimer">${disclaimer}</div>
     <span class="tracks-toggle">Show tracklist</span>
     <div class="tracklist">${trackRows}</div>
   </div>`;
