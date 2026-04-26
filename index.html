@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groove Guide — Vinyl Pressing Advisor</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f9f8f6;
+    --surface: #ffffff;
+    --surface2: #f2f0ec;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --text2: #6b6a66;
+    --text3: #9e9c97;
+    --green-bg: #eaf3de; --green-text: #3b6d11;
+    --amber-bg: #faeeda; --amber-text: #854f0b;
+    --coral-bg: #faece7; --coral-text: #993c1d;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #242422;
+      --surface2: #2e2e2b;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #f0ede8;
+      --text2: #a09d97;
+      --text3: #6b6a66;
+      --green-bg: #173404; --green-text: #c0dd97;
+      --amber-bg: #412402; --amber-text: #fac775;
+      --coral-bg: #4a1b0c; --coral-text: #f0997b;
+    }
+  }
+
+  html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 15px; line-height: 1.5; }
+
+  .container { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  /* Header */
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
+  .logo-disc { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--text); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .logo-disc::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--text); }
+  .logo-disc::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--text); }
+  .logo-words h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: var(--text); }
+  .logo-words p { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+  /* Search */
+  .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+  .search-box input { flex: 1; height: 42px; padding: 0 14px; font-size: 15px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; transition: border-color 0.15s; }
+  .search-box input:focus { border-color: var(--text3); }
+  .search-box input::placeholder { color: var(--text3); }
+  .search-box button { height: 42px; padding: 0 20px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--text); color: var(--bg); cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+  .search-box button:hover { opacity: 0.85; }
+  .search-box button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* Filters */
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 2rem; }
+  .pill { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-strong); cursor: pointer; color: var(--text2); background: transparent; transition: all 0.15s; user-select: none; }
+  .pill:hover { border-color: var(--text3); color: var(--text); }
+  .pill.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* States */
+  .state-msg { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
+  .state-msg .icon { font-size: 32px; margin-bottom: 12px; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border-strong); border-top-color: var(--text); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Artist block */
+  .artist-block { margin-bottom: 2.5rem; }
+  .artist-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .artist-header h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+  .artist-header span { font-size: 12px; color: var(--text3); }
+
+  /* Albums grid */
+  .albums-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .album-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem 0.9rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; position: relative; }
+  .album-card:hover { border-color: var(--border-strong); }
+  .album-card.open { border-color: var(--border-strong); }
+  .album-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 2px; }
+  .album-meta { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+  .badge-1lp { background: var(--green-bg); color: var(--green-text); }
+  .badge-2lp { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-3lp, .badge-4lp { background: var(--coral-bg); color: var(--coral-text); }
+  .badge-unknown { background: var(--surface2); color: var(--text3); }
+  .disc-dots { display: flex; gap: 4px; margin-top: 7px; }
+  .disc-dot { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid currentColor; display: flex; align-items: center; justify-content: center; }
+  .disc-dot::after { content: ''; width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+  .loading-card { color: var(--text3); font-size: 12px; padding-top: 6px; }
+
+  /* Detail panel */
+  .detail-wrap { grid-column: 1 / -1; }
+  .detail-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-top: 2px; }
+  .detail-panel h3 { font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; }
+  .stat-unit { font-size: 11px; color: var(--text2); font-weight: 400; margin-left: 2px; }
+  .sides-section { margin-bottom: 12px; }
+  .sides-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .side-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+  .side-name { font-size: 12px; color: var(--text2); width: 46px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: visible; position: relative; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .bar-ok { background: #639922; }
+  .bar-warn { background: #ba7517; }
+  .bar-over { background: #d85a30; }
+  .bar-threshold { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--text3); opacity: 0.5; }
+  .side-mins { font-size: 12px; color: var(--text2); width: 48px; text-align: right; flex-shrink: 0; }
+  .threshold-note { font-size: 11px; color: var(--text3); text-align: right; margin-bottom: 10px; }
+  .rationale { font-size: 13px; color: var(--text2); line-height: 1.65; padding-top: 10px; border-top: 1px solid var(--border); }
+
+  /* Tracklist */
+  .tracks-toggle { font-size: 12px; color: var(--text3); cursor: pointer; margin-top: 8px; display: inline-block; text-decoration: underline; text-underline-offset: 2px; }
+  .tracklist { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; display: none; }
+  .tracklist.visible { display: block; }
+  .track-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; color: var(--text2); border-bottom: 1px solid var(--border); }
+  .track-row:last-child { border-bottom: none; }
+  .track-num { width: 20px; text-align: right; color: var(--text3); flex-shrink: 0; }
+  .track-name { flex: 1; color: var(--text); }
+  .track-dur { color: var(--text3); flex-shrink: 0; }
+
+  /* Error */
+  .error-msg { background: var(--coral-bg); color: var(--coral-text); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; }
+
+  @media (max-width: 500px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .albums-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="logo">
+    <div class="logo-disc"></div>
+    <div class="logo-words">
+      <h1>Groove Guide</h1>
+      <p>Vinyl pressing advisor</p>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search an artist… (e.g. Bad Brains, U2, Radiohead)" autocomplete="off" />
+    <button id="searchBtn" onclick="doSearch()">Search</button>
+  </div>
+
+  <div class="filters">
+    <span class="pill active" data-type="album" onclick="toggleFilter(this)">Studio albums</span>
+    <span class="pill" data-type="live" onclick="toggleFilter(this)">Live</span>
+    <span class="pill" data-type="compilation" onclick="toggleFilter(this)">Compilations</span>
+    <span class="pill" data-type="ep" onclick="toggleFilter(this)">EPs</span>
+  </div>
+
+  <div id="errorMsg" class="error-msg" style="display:none"></div>
+  <div id="output"></div>
+
+</div>
+
+<script>
+const THRESHOLD = 22;
+const MB = 'https://musicbrainz.org/ws/2';
+const UA = 'GrooveGuide/1.0 (vinyl-pressing-advisor)';
+const DELAY = 1100; // MusicBrainz rate limit: 1 req/sec
+
+let activeFilters = new Set(['album']);
+let lastResults = [];
+let openDetailId = null;
+
+function toggleFilter(el) {
+  const t = el.dataset.type;
+  if (activeFilters.has(t)) {
+    if (activeFilters.size === 1) return;
+    activeFilters.delete(t);
+    el.classList.remove('active');
+  } else {
+    activeFilters.add(t);
+    el.classList.add('active');
+  }
+  if (lastResults.length) renderArtists(lastResults);
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function mbFetch(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error(`MusicBrainz error ${res.status}`);
+  return res.json();
+}
+
+async function searchArtists(query) {
+  const url = `${MB}/artist?query=${encodeURIComponent(query)}&limit=5&fmt=json`;
+  const data = await mbFetch(url);
+  return (data.artists || []).slice(0, 3);
+}
+
+async function getReleaseGroups(artistId) {
+  const types = [...activeFilters].join('|');
+  const url = `${MB}/release-group?artist=${artistId}&type=${encodeURIComponent(types)}&limit=100&fmt=json`;
+  const data = await mbFetch(url);
+  const groups = (data['release-groups'] || []);
+  return groups.sort((a, b) => {
+    const ya = parseInt(a['first-release-date']) || 9999;
+    const yb = parseInt(b['first-release-date']) || 9999;
+    return ya - yb;
+  });
+}
+
+async function getBestRelease(rgId) {
+  await sleep(DELAY);
+  const url = `${MB}/release?release-group=${rgId}&status=official&fmt=json&limit=10`;
+  const data = await mbFetch(url);
+  const releases = (data.releases || []);
+  if (!releases.length) return null;
+  // Prefer releases with track data available; pick first official
+  return releases[0];
+}
+
+async function getReleaseTracks(releaseId) {
+  await sleep(DELAY);
+  const url = `${MB}/release/${releaseId}?inc=recordings&fmt=json`;
+  const data = await mbFetch(url);
+  const media = data.media || [];
+  const tracks = [];
+  for (const medium of media) {
+    for (const track of (medium.tracks || [])) {
+      tracks.push({
+        num: track.number,
+        title: track.title,
+        duration: track.length || (track.recording && track.recording.length) || null
+      });
+    }
+  }
+  return tracks;
+}
+
+function getRec(runtimeMs) {
+  const mins = runtimeMs / 60000;
+  const minsPerSide1 = mins / 2;
+  if (minsPerSide1 <= THRESHOLD) return { lp: 1, mins };
+  if (mins / 4 <= THRESHOLD) return { lp: 2, mins };
+  if (mins / 6 <= THRESHOLD) return { lp: 3, mins };
+  return { lp: 4, mins };
+}
+
+function fmtMs(ms) {
+  if (!ms) return '?:??';
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+function fmtMins(ms) {
+  return (ms / 60000).toFixed(1);
+}
+
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  showError('');
+  lastResults = [];
+  openDetailId = null;
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.textContent = 'Searching…';
+
+  const out = document.getElementById('output');
+  out.innerHTML = `<div class="state-msg"><span class="spinner"></span> Finding artists…</div>`;
+
+  try {
+    const artists = await searchArtists(q);
+    if (!artists.length) {
+      out.innerHTML = `<div class="state-msg"><div class="icon">🔍</div>No artists found for "${q}"</div>`;
+      return;
+    }
+
+    lastResults = artists;
+    out.innerHTML = artists.map(a => `
+      <div class="artist-block" id="artist-${a.id}">
+        <div class="artist-header">
+          <h2>${escHtml(a.name)}</h2>
+          <span id="count-${a.id}">loading albums…</span>
+        </div>
+        <div class="albums-grid" id="grid-${a.id}">
+          <div class="state-msg" style="grid-column:1/-1; padding:1rem 0; text-align:left;">
+            <span class="spinner"></span> Fetching discography…
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    for (const artist of artists) {
+      await loadArtist(artist);
+      await sleep(DELAY);
+    }
+
+  } catch (err) {
+    showError(`Something went wrong: ${err.message}. MusicBrainz may be rate-limiting — wait a moment and try again.`);
+    out.innerHTML = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Search';
+  }
+}
+
+async function loadArtist(artist) {
+  const grid = document.getElementById(`grid-${artist.id}`);
+  const countEl = document.getElementById(`count-${artist.id}`);
+  if (!grid) return;
+
+  try {
+    const groups = await getReleaseGroups(artist.id);
+    if (!groups.length) {
+      grid.innerHTML = `<div style="font-size:13px; color:var(--text3); padding:0.5rem 0;">No releases found with current filters.</div>`;
+      countEl.textContent = '0 releases';
+      return;
+    }
+
+    countEl.textContent = `${groups.length} release${groups.length !== 1 ? 's' : ''}`;
+    grid.innerHTML = '';
+
+    for (const rg of groups) {
+      const card = makeCardShell(rg);
+      grid.appendChild(card);
+    }
+
+    // Load track data for each release group sequentially
+    for (const rg of groups) {
+      const card = document.getElementById(`card-${rg.id}`);
+      if (!card) continue;
+      try {
+        const release = await getBestRelease(rg.id);
+        if (!release) {
+          updateCardUnknown(rg.id);
+          continue;
+        }
+        const tracks = await getReleaseTracks(release.id);
+        const totalMs = tracks.reduce((sum, t) => sum + (t.duration || 0), 0);
+        const hasDurations = tracks.some(t => t.duration);
+        if (!hasDurations || totalMs === 0) {
+          updateCardUnknown(rg.id);
+        } else {
+          updateCard(rg, tracks, totalMs);
+        }
+      } catch (e) {
+        updateCardUnknown(rg.id);
+      }
+    }
+  } catch (err) {
+    grid.innerHTML = `<div style="font-size:13px; color:var(--coral-text);">Failed to load discography.</div>`;
+  }
+}
+
+function makeCardShell(rg) {
+  const year = (rg['first-release-date'] || '').slice(0, 4) || '—';
+  const div = document.createElement('div');
+  div.className = 'album-card';
+  div.id = `card-${rg.id}`;
+  div.innerHTML = `
+    <div class="album-title">${escHtml(rg.title)}</div>
+    <div class="album-meta">${year}</div>
+    <div class="loading-card"><span class="spinner"></span></div>
+  `;
+  return div;
+}
+
+function updateCardUnknown(rgId) {
+  const card = document.getElementById(`card-${rgId}`);
+  if (!card) return;
+  const title = card.querySelector('.album-title').textContent;
+  const meta = card.querySelector('.album-meta').textContent;
+  card.innerHTML = `
+    <div class="album-title">${escHtml(title)}</div>
+    <div class="album-meta">${meta}</div>
+    <span class="badge badge-unknown">No duration data</span>
+  `;
+}
+
+function updateCard(rg, tracks, totalMs) {
+  const card = document.getElementById(`card-${rg.id}`);
+  if (!card) return;
+  const year = (rg['first-release-date'] || '').slice(0, 4) || '—';
+  const rec = getRec(totalMs);
+  const badgeCls = `badge-${rec.lp}lp`;
+  const label = `${rec.lp}LP`;
+  const discDots = Array.from({length: rec.lp}, () =>
+    `<div class="disc-dot" style="color:${rec.lp===1?'var(--green-text)':rec.lp===2?'var(--amber-text)':'var(--coral-text)'}"></div>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="album-title">${escHtml(rg.title)}</div>
+    <div class="album-meta">${year} &middot; ${tracks.length} tracks &middot; ${fmtMins(totalMs)} min</div>
+    <span class="badge ${badgeCls}">${label} recommended</span>
+    <div class="disc-dots">${discDots}</div>
+  `;
+
+  card.addEventListener('click', () => toggleDetail(card, rg, tracks, totalMs, rec));
+}
+
+function toggleDetail(card, rg, tracks, totalMs, rec) {
+  const grid = card.closest('.albums-grid');
+
+  // Remove any existing detail panel in this artist section
+  const existing = grid.parentElement.querySelector('.detail-wrap');
+  const wasThisCard = existing && existing.dataset.rgId === rg.id;
+  if (existing) {
+    existing.remove();
+    grid.querySelectorAll('.album-card').forEach(c => c.classList.remove('open'));
+  }
+  if (wasThisCard) return;
+
+  card.classList.add('open');
+  const wrap = document.createElement('div');
+  wrap.className = 'detail-wrap';
+  wrap.dataset.rgId = rg.id;
+  wrap.innerHTML = buildDetail(rg, tracks, totalMs, rec);
+  grid.insertAdjacentElement('afterend', wrap);
+
+  wrap.querySelector('.tracks-toggle').addEventListener('click', function() {
+    const tl = wrap.querySelector('.tracklist');
+    const visible = tl.classList.toggle('visible');
+    this.textContent = visible ? 'Hide tracklist' : 'Show tracklist';
+  });
+}
+
+function buildDetail(rg, tracks, totalMs, rec) {
+  const totalSides = rec.lp * 2;
+  const minsPerSide = (totalMs / 60000) / totalSides;
+  const maxBar = THRESHOLD + 5;
+  const thresholdPct = (THRESHOLD / maxBar * 100).toFixed(1);
+
+  const sideRows = Array.from({length: totalSides}, (_, i) => {
+    const pct = Math.min((minsPerSide / maxBar) * 100, 100).toFixed(1);
+    const cls = minsPerSide <= 18 ? 'bar-ok' : minsPerSide <= THRESHOLD ? 'bar-warn' : 'bar-over';
+    return `<div class="side-row">
+      <span class="side-name">Side ${String.fromCharCode(65+i)}</span>
+      <div class="bar-track">
+        <div class="bar-fill ${cls}" style="width:${pct}%"></div>
+        <div class="bar-threshold" style="left:${thresholdPct}%"></div>
+      </div>
+      <span class="side-mins">~${minsPerSide.toFixed(1)} min</span>
+    </div>`;
+  }).join('');
+
+  const reason = rec.lp === 1
+    ? `At ~${minsPerSide.toFixed(1)} min/side, this fits comfortably on a single LP. Each groove can be cut deep, preserving full dynamic range.`
+    : `At ${(totalMs/60000).toFixed(1)} total minutes, a single LP would push each side past the ${THRESHOLD}-minute quality threshold. A ${rec.lp}LP pressing keeps each side at ~${minsPerSide.toFixed(1)} min — well within the optimal window for groove depth and dynamics.`;
+
+  const trackRows = tracks.map(t =>
+    `<div class="track-row">
+      <span class="track-num">${escHtml(String(t.num))}</span>
+      <span class="track-name">${escHtml(t.title)}</span>
+      <span class="track-dur">${fmtMs(t.duration)}</span>
+    </div>`
+  ).join('');
+
+  const badgeCls = `badge-${rec.lp}lp`;
+
+  return `<div class="detail-panel">
+    <h3>${escHtml(rg.title)} — pressing analysis</h3>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-label">Runtime</div>
+        <div class="stat-value">${(totalMs/60000).toFixed(1)}<span class="stat-unit">min</span></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Per side</div>
+        <div class="stat-value">${minsPerSide.toFixed(1)}<span class="stat-unit">min</span></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Recommended</div>
+        <div class="stat-value"><span class="badge ${badgeCls}" style="font-size:14px">${rec.lp}LP</span></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total sides</div>
+        <div class="stat-value">${totalSides}</div>
+      </div>
+    </div>
+    <div class="sides-section">
+      <div class="sides-label">Minutes per side</div>
+      ${sideRows}
+      <div class="threshold-note">▲ ${THRESHOLD} min/side threshold</div>
+    </div>
+    <div class="rationale">${reason}</div>
+    <span class="tracks-toggle">Show tracklist</span>
+    <div class="tracklist">${trackRows}</div>
+  </div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
