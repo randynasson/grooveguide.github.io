@@ -200,14 +200,15 @@ async function searchArtists(query) {
 }
 
 async function getReleaseGroups(artistId) {
-  // Request only primary type Album from the API
-  const url = `${MB}/release-group?artist=${artistId}&type=Album&limit=100&fmt=json`;
+  // Fetch all release groups — no type filter in the URL to avoid API 400 errors.
+  // We do all filtering client-side where we have full control.
+  const url = `${MB}/release-group?artist=${artistId}&limit=100&fmt=json`;
   const data = await mbFetch(url);
   let groups = (data['release-groups'] || []);
 
-  // Strict client-side filter: primary type must be Album AND no secondary types at all.
-  // Secondary types flag things like Live, Compilation, Soundtrack, Remix, Demo, etc.
-  // A pure studio album has primary-type "Album" and an empty secondary-types array.
+  // Strict client-side filter: primary type must be "Album" AND secondary-types must be empty.
+  // MusicBrainz uses secondary-types to tag Live, Compilation, Soundtrack, Remix, Demo, etc.
+  // A pure studio album has primary-type "Album" and no secondary types whatsoever.
   groups = groups.filter(rg => {
     const primary = (rg['primary-type'] || '');
     const secondary = (rg['secondary-types'] || []);
