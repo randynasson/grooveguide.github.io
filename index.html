@@ -186,28 +186,7 @@
     color: var(--bone);
   }
 
-  .intro-note {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    margin-top: 16px;
-    padding: 10px 14px;
-    background: rgba(0,0,0,0.2);
-    border-left: 2px solid var(--gold);
-    font-size: 12px;
-    font-weight: 300;
-    color: var(--moth-gray);
-    line-height: 1.7;
-  }
-  .intro-note-label {
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--gold);
-    flex-shrink: 0;
-    padding-top: 3px;
-  }
+
 
   /* ── Search ── */
   .search-wrap {
@@ -430,8 +409,112 @@
   .album-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
+  }
+
+  /* Dual RPM badges */
+  .rpm-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+  .rpm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: var(--radius);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .rpm-badge .rpm-label {
+    font-size: 9px;
+    opacity: 0.75;
+    letter-spacing: 0.06em;
+  }
+  /* 33⅓ — warm, earthy */
+  .rpm-33-1lp  { background: rgba(46,74,46,0.12);  color: var(--mtn-forest); }
+  .rpm-33-2lp  { background: rgba(200,133,58,0.15); color: #7A5215; }
+  .rpm-33-3lp,
+  .rpm-33-4lp  { background: rgba(139,46,26,0.12);  color: var(--cherokee); }
+  /* 45 — cooler, blue-slate to distinguish */
+  .rpm-45-1lp  { background: rgba(30,58,74,0.10);   color: var(--blue-lava); border: 1px solid rgba(30,58,74,0.2); }
+  .rpm-45-2lp  { background: rgba(30,58,74,0.10);   color: var(--blue-lava); border: 1px solid rgba(30,58,74,0.2); }
+  .rpm-45-3lp,
+  .rpm-45-4lp  { background: rgba(30,58,74,0.10);   color: var(--blue-lava); border: 1px solid rgba(30,58,74,0.2); }
+
+  /* Dual detail sections */
+  .detail-speeds {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .speed-section {
+    border: 1px solid var(--border-warm);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .speed-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .speed-header-33 {
+    background: rgba(61,43,31,0.07);
+    color: var(--ink-mid);
+    border-bottom: 1px solid var(--border);
+  }
+  .speed-header-45 {
+    background: rgba(30,58,74,0.08);
+    color: var(--blue-lava);
+    border-bottom: 1px solid rgba(30,58,74,0.15);
+  }
+  .speed-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .speed-dot::after { content:''; width:2px; height:2px; border-radius:50%; background:currentColor; }
+  .speed-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .speed-stat {
+    background: var(--surface);
+    padding: 10px 12px;
+  }
+  .speed-stat .stat-label { font-size: 9px; }
+  .speed-stat .stat-value { font-size: 18px; }
+
+  .speed-callout {
+    padding: 10px 12px;
+    font-size: 12.5px;
+    font-weight: 300;
+    color: var(--ink-mid);
+    line-height: 1.75;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .speed-callout-45 { color: var(--blue-lava); background: rgba(30,58,74,0.04); }
+
+  @media (max-width: 640px) {
+    .detail-speeds { grid-template-columns: 1fr; }
+    .rpm-pair { flex-direction: row; align-items: center; }
   }
 
   /* Badges use FLW palette */
@@ -725,10 +808,7 @@
       <div class="intro-lead">Not all pressings are created equal.</div>
       <p>Search an artist to see their studio albums and find out how many discs a quality pressing should have.</p>
       <p>For 33&#8209;1/3 RPM records, <em>each side should carry no more than about 22 minutes of music</em> — beyond that, grooves get cut shallower, and dynamic range begins to suffer.</p>
-      <div class="intro-note">
-        <span class="intro-note-label">Note</span>
-        <span>Groove Guide currently accounts for 33&#8209;1/3 RPM pressings only and does not yet factor in 45 RPM album pressings.</span>
-      </div>
+
     </div>
 
     <div class="search-area">
@@ -754,7 +834,7 @@
 <div class="footer-band"></div>
 
 <script>
-const THRESHOLD = 22;
+// Thresholds defined near getRec below
 const MB = 'https://musicbrainz.org/ws/2';
 const UA = 'GrooveGuide/1.0 (vinyl-pressing-advisor)';
 const DELAY = 1100;
@@ -823,11 +903,14 @@ async function getReleaseTracks(releaseId) {
   return tracks;
 }
 
-function getRec(runtimeMs) {
+const THRESHOLD_33 = 22;  // min/side for 33⅓ RPM
+const THRESHOLD_45 = 15;  // min/side for 45 RPM
+
+function getRec(runtimeMs, threshold) {
   const mins = runtimeMs / 60000;
-  if (mins / 2 <= THRESHOLD) return { lp: 1, mins };
-  if (mins / 4 <= THRESHOLD) return { lp: 2, mins };
-  if (mins / 6 <= THRESHOLD) return { lp: 3, mins };
+  if (mins / 2 <= threshold) return { lp: 1, mins };
+  if (mins / 4 <= threshold) return { lp: 2, mins };
+  if (mins / 6 <= threshold) return { lp: 3, mins };
   return { lp: 4, mins };
 }
 
@@ -970,26 +1053,29 @@ function updateRowUnknown(rgId) {
 function updateRow(rg, tracks, totalMs) {
   const row = document.getElementById(`row-${rg.id}`);
   if (!row) return;
-  const rec = getRec(totalMs);
+  const rec33 = getRec(totalMs, THRESHOLD_33);
+  const rec45 = getRec(totalMs, THRESHOLD_45);
   const totalMins = (totalMs / 60000).toFixed(1);
-  const dotColor = rec.lp === 1 ? 'var(--mtn-forest)' : rec.lp === 2 ? '#7A5215' : 'var(--cherokee)';
-  const discDots = Array.from({length: rec.lp}, () =>
-    `<div class="disc-dot" style="color:${dotColor}"></div>`
-  ).join('');
 
   row.querySelector('.album-meta').textContent = `${tracks.length} tracks · ${totalMins} min`;
   row.querySelector('.album-right').innerHTML = `
-    <div class="disc-dots">${discDots}</div>
-    <span class="badge badge-${rec.lp}lp">${rec.lp}LP</span>
+    <div class="rpm-pair">
+      <span class="rpm-badge rpm-33-${rec33.lp}lp">
+        <span class="rpm-label">33⅓</span> ${rec33.lp}LP
+      </span>
+      <span class="rpm-badge rpm-45-${rec45.lp}lp">
+        <span class="rpm-label">45</span> ${rec45.lp}LP
+      </span>
+    </div>
     <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M4 6l4 4 4-4"/>
     </svg>
   `;
   row.classList.add('loaded');
-  row.onclick = () => toggleDetail(row, rg, tracks, totalMs, rec);
+  row.onclick = () => toggleDetail(row, rg, tracks, totalMs, rec33, rec45);
 }
 
-function toggleDetail(row, rg, tracks, totalMs, rec) {
+function toggleDetail(row, rg, tracks, totalMs, rec33, rec45) {
   const list = row.closest('.albums-list');
   const existingDetail = list.querySelector('.detail-panel');
   const existingRow = list.querySelector('.album-row.open');
@@ -1002,7 +1088,7 @@ function toggleDetail(row, rg, tracks, totalMs, rec) {
   row.classList.add('open');
   const detail = document.createElement('div');
   detail.className = 'detail-panel';
-  detail.innerHTML = buildDetail(rg, tracks, totalMs, rec);
+  detail.innerHTML = buildDetail(rg, tracks, totalMs, rec33, rec45);
   row.insertAdjacentElement('afterend', detail);
 
   setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
@@ -1014,7 +1100,7 @@ function toggleDetail(row, rg, tracks, totalMs, rec) {
   });
 }
 
-function buildDetail(rg, tracks, totalMs, rec) {
+function buildSpeedSection(totalMs, rec, threshold, speedClass, speedLabel) {
   const totalSides = rec.lp * 2;
   const totalMins = (totalMs / 60000).toFixed(1);
   const minsPerSide = (totalMs / 60000) / totalSides;
@@ -1022,16 +1108,36 @@ function buildDetail(rg, tracks, totalMs, rec) {
 
   let reason;
   if (rec.lp === 1) {
-    reason = `A single LP (2 sides) is sufficient. Assuming even sequencing, each side would carry approximately ${minsPerSide.toFixed(1)} minutes — comfortably within the ${THRESHOLD}-minute threshold where groove depth and dynamic range are best preserved.`;
+    reason = `A single LP is sufficient. Each side carries ~${minsPerSide.toFixed(1)} min — within the ${threshold}-min threshold for this speed.`;
   } else {
-    reason = `A ${rec.lp}LP pressing (${totalSides} sides) is recommended. At ${totalMins} total minutes, a single LP would require approximately ${singleSideMins.toFixed(1)} minutes per side — over the ${THRESHOLD}-minute threshold where grooves must be cut shallower to fit, sacrificing dynamic range. Spread across ${totalSides} sides, each carries approximately ${minsPerSide.toFixed(1)} minutes, well within the optimal window.`;
+    reason = `A single LP would need ~${singleSideMins.toFixed(1)} min/side, over the ${threshold}-min threshold. A ${rec.lp}LP pressing keeps each side at ~${minsPerSide.toFixed(1)} min.`;
   }
 
-  const disclaimer = `Recommendation based on total runtime from MusicBrainz (${totalMins} min). Actual side lengths vary by pressing and sequencing.`;
+  return `
+    <div class="speed-section">
+      <div class="speed-header speed-header-${speedClass}">
+        <div class="speed-dot"></div>
+        ${speedLabel}
+      </div>
+      <div class="speed-stats">
+        <div class="speed-stat stat-box">
+          <div class="stat-label">Recommended</div>
+          <div class="stat-value">${rec.lp}<span class="stat-unit">LP</span></div>
+        </div>
+        <div class="speed-stat stat-box">
+          <div class="stat-label">Avg / side</div>
+          <div class="stat-value">${minsPerSide.toFixed(1)}<span class="stat-unit">min</span></div>
+        </div>
+      </div>
+      <div class="speed-callout speed-callout-${speedClass}">${reason}</div>
+    </div>
+  `;
+}
 
-  const discIcons = Array.from({length: rec.lp}, () =>
-    `<div class="rec-disc-icon"></div>`
-  ).join('');
+function buildDetail(rg, tracks, totalMs, rec33, rec45) {
+  const totalMins = (totalMs / 60000).toFixed(1);
+
+  const disclaimer = `Recommendations based on total runtime from MusicBrainz (${totalMins} min). Actual side lengths vary by pressing and sequencing. 45 RPM pressings offer superior audio quality but require more discs.`;
 
   const trackRows = tracks.map(t =>
     `<div class="track-row">
@@ -1048,24 +1154,21 @@ function buildDetail(rg, tracks, totalMs, rec) {
         <div class="stat-value">${totalMins}<span class="stat-unit">min</span></div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Avg / side</div>
-        <div class="stat-value">${minsPerSide.toFixed(1)}<span class="stat-unit">min</span></div>
+        <div class="stat-label">Tracks</div>
+        <div class="stat-value">${tracks.length}</div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Recommended</div>
-        <div class="stat-value">${rec.lp}<span class="stat-unit">LP</span></div>
+        <div class="stat-label">At 33⅓ RPM</div>
+        <div class="stat-value">${rec33.lp}<span class="stat-unit">LP</span></div>
       </div>
       <div class="stat-box">
-        <div class="stat-label">Total sides</div>
-        <div class="stat-value">${totalSides}</div>
+        <div class="stat-label">At 45 RPM</div>
+        <div class="stat-value">${rec45.lp}<span class="stat-unit">LP</span></div>
       </div>
     </div>
-    <div class="rec-callout">
-      <div class="rec-callout-discs">${discIcons}</div>
-      <div class="rec-callout-text">
-        <div class="rec-callout-label">Recommendation</div>
-        <div class="rec-callout-body">${reason}</div>
-      </div>
+    <div class="detail-speeds">
+      ${buildSpeedSection(totalMs, rec33, THRESHOLD_33, '33', '33&#8209;1/3 RPM')}
+      ${buildSpeedSection(totalMs, rec45, THRESHOLD_45, '45', '45 RPM')}
     </div>
     <div class="detail-disclaimer">${disclaimer}</div>
     <button class="tracks-toggle">▼ Show tracklist</button>
