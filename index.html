@@ -70,7 +70,7 @@
     overflow: hidden;
   }
 
-  /* FLW-inspired geometric ornament in the band */
+  /* Record groove texture — barely-there concentric variance */
   .header-band::before {
     content: '';
     position: absolute;
@@ -79,9 +79,21 @@
       repeating-linear-gradient(
         90deg,
         transparent 0px,
-        transparent 38px,
-        rgba(200,133,58,0.18) 38px,
-        rgba(200,133,58,0.18) 40px
+        transparent 11px,
+        rgba(255,255,255,0.04) 11px,
+        rgba(255,255,255,0.04) 12px,
+        transparent 12px,
+        transparent 19px,
+        rgba(255,255,255,0.03) 19px,
+        rgba(255,255,255,0.03) 20px,
+        transparent 20px,
+        transparent 29px,
+        rgba(255,255,255,0.035) 29px,
+        rgba(255,255,255,0.035) 30px,
+        transparent 30px,
+        transparent 34px,
+        rgba(255,255,255,0.025) 34px,
+        rgba(255,255,255,0.025) 34.5px
       );
     pointer-events: none;
   }
