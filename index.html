@@ -413,40 +413,59 @@
     flex-shrink: 0;
   }
 
-  /* Dual RPM badges */
+  /* Dual RPM display — two labeled groups side by side */
   .rpm-pair {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    align-items: flex-end;
-  }
-  .rpm-badge {
-    display: inline-flex;
     align-items: center;
-    gap: 5px;
-    height: 20px;
-    padding: 0 7px;
-    border-radius: var(--radius);
-    font-size: 10px;
+    gap: 10px;
+  }
+  .rpm-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .rpm-group-label {
+    font-size: 8px;
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     white-space: nowrap;
   }
-  .rpm-badge .rpm-label {
-    font-size: 9px;
-    opacity: 0.75;
-    letter-spacing: 0.06em;
+  .rpm-group-label-33 { color: var(--tanglewood); }
+  .rpm-group-label-45 { color: var(--blue-lava); opacity: 0.7; }
+  .rpm-dots {
+    display: flex;
+    gap: 3px;
   }
-  /* 33⅓ — warm, earthy */
-  .rpm-33-1lp  { background: rgba(46,74,46,0.12);  color: var(--mtn-forest); }
-  .rpm-33-2lp  { background: rgba(200,133,58,0.15); color: #7A5215; }
-  .rpm-33-3lp,
-  .rpm-33-4lp  { background: rgba(139,46,26,0.12);  color: var(--cherokee); }
-  /* 45 — cooler, blue-slate to distinguish */
-  .rpm-45-1lp  { background: rgba(30,58,74,0.10);   color: var(--blue-lava); border: 1px solid rgba(30,58,74,0.2); }
-  .rpm-45-2lp  { background: rgba(30,58,74,0.10);   color: var(--blue-lava); border: 1px solid rgba(30,58,74,0.2); }
-  .rpm-45-3lp,
-  .rpm-45-4lp  { background: rgba(30,58,74,0.10);   color: var(--blue-lava); border: 1px solid rgba(30,58,74,0.2); }
+  .rpm-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .rpm-dot::after {
+    content: '';
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .rpm-dot-33-1lp { color: var(--mtn-forest); }
+  .rpm-dot-33-2lp { color: #7A5215; }
+  .rpm-dot-33-3lp, .rpm-dot-33-4lp { color: var(--cherokee); }
+  .rpm-dot-45 { color: var(--blue-lava); }
+
+  .rpm-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border-warm);
+    flex-shrink: 0;
+  }
 
   /* Dual detail sections */
   .detail-speeds {
@@ -807,7 +826,7 @@
     <div class="intro">
       <div class="intro-lead">Not all pressings are created equal.</div>
       <p>Search an artist to see their studio albums and find out how many discs a quality pressing should have.</p>
-      <p>For 33&#8209;1/3 RPM records, <em>each side should carry no more than about 22 minutes of music</em> — beyond that, grooves get cut shallower, and dynamic range begins to suffer.</p>
+      <p>For 33&#8209;1/3 RPM records, <em>each side should carry no more than 22 minutes of music.</em> For 45 RPM records, <em>each side should carry no more than 15 minutes.</em> Exceeding these lengths, grooves get cut shallower and dynamic range begins to suffer.</p>
 
     </div>
 
@@ -1057,15 +1076,23 @@ function updateRow(rg, tracks, totalMs) {
   const rec45 = getRec(totalMs, THRESHOLD_45);
   const totalMins = (totalMs / 60000).toFixed(1);
 
+  const dots33 = Array.from({length: rec33.lp}, () =>
+    `<div class="rpm-dot rpm-dot-33-${rec33.lp}lp"></div>`).join('');
+  const dots45 = Array.from({length: rec45.lp}, () =>
+    `<div class="rpm-dot rpm-dot-45"></div>`).join('');
+
   row.querySelector('.album-meta').textContent = `${tracks.length} tracks · ${totalMins} min`;
   row.querySelector('.album-right').innerHTML = `
     <div class="rpm-pair">
-      <span class="rpm-badge rpm-33-${rec33.lp}lp">
-        <span class="rpm-label">33⅓</span> ${rec33.lp}LP
-      </span>
-      <span class="rpm-badge rpm-45-${rec45.lp}lp">
-        <span class="rpm-label">45</span> ${rec45.lp}LP
-      </span>
+      <div class="rpm-group">
+        <span class="rpm-group-label rpm-group-label-33">33⅓</span>
+        <div class="rpm-dots">${dots33}</div>
+      </div>
+      <div class="rpm-divider"></div>
+      <div class="rpm-group">
+        <span class="rpm-group-label rpm-group-label-45">45</span>
+        <div class="rpm-dots">${dots45}</div>
+      </div>
     </div>
     <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M4 6l4 4 4-4"/>
